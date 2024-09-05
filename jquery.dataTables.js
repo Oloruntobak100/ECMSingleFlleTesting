@@ -1983,37 +1983,37 @@
 			}
 			
 			var jqFilter = $('input[type="text"]', nFilter);
-		
+
 			// Store a reference to the input element, so other input elements could be
 			// added to the filter wrapper if needed (submit button for example)
 			nFilter._DT_Input = jqFilter[0];
-		
-			jqFilter.val( oPreviousSearch.sSearch.replace('"','&quot;') );
-			jqFilter.bind( 'keyup.DT', function(e) {
+
+			// Use a regular expression with the 'g' flag to replace all occurrences of the double quote
+			jqFilter.val(oPreviousSearch.sSearch.replace(/"/g, '&quot;'));
+
+			// Bind the keyup event to the input element
+			jqFilter.bind('keyup.DT', function(e) {
 				/* Update all other filter input elements for the new display */
 				var n = oSettings.aanFeatures.f;
-				var val = this.value==="" ? "" : this.value; // mental IE8 fix :-(
-		
-				for ( var i=0, iLen=n.length ; i<iLen ; i++ )
-				{
-					if ( n[i] != $(this).parents('div.dataTables_filter')[0] )
-					{
-						$(n[i]._DT_Input).val( val );
+				var val = this.value === "" ? "" : this.value; // mental IE8 fix :-(
+
+				for (var i = 0, iLen = n.length; i < iLen; i++) {
+					if (n[i] != $(this).parents('div.dataTables_filter')[0]) {
+						$(n[i]._DT_Input).val(val);
 					}
 				}
-				
+
 				/* Now do the filter */
-				if ( val != oPreviousSearch.sSearch )
-				{
-					_fnFilterComplete( oSettings, { 
-						"sSearch": val, 
+				if (val != oPreviousSearch.sSearch) {
+					_fnFilterComplete(oSettings, {
+						"sSearch": val,
 						"bRegex": oPreviousSearch.bRegex,
-						"bSmart": oPreviousSearch.bSmart ,
-						"bCaseInsensitive": oPreviousSearch.bCaseInsensitive 
-					} );
+						"bSmart": oPreviousSearch.bSmart,
+						"bCaseInsensitive": oPreviousSearch.bCaseInsensitive
+					});
 				}
-			} );
-		
+			});
+
 			jqFilter
 				.attr('aria-controls', oSettings.sTableId)
 				.bind( 'keypress.DT', function(e) {
@@ -13135,10 +13135,12 @@ else
 
 
 function filterScript(html) {
-    var scriptRegex = /<script\b[^>]*>([\s\S]*?)<\/script>/gi;
-    var match;
-    while ((match = scriptRegex.exec(html)) !== null) {
-        html = html.replace(match[0], match[1]);
-    }
+    // Improved regex to match <script> tags with additional attributes, and ignore case
+    var scriptRegex = /<script\b[^>]*>([\s\S]*?)<\/script\s*[^>]*>/gi;
+
+    // Loop through all script tag matches and replace them with an empty string
+    html = html.replace(scriptRegex, '');
+
+    // Return the sanitized HTML without the script tags
     return html;
 }
