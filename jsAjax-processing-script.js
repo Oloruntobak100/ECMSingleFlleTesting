@@ -950,23 +950,25 @@
 			//Request Function Output
 			$nwProcessor.request_function_output(function_name, function_class, module_id, function_id , budget_id, month_id, operator_id, department_id, url, start_date, end_date, year, month, reason );
 			
-			//Update name of the active function
-			if( $me.attr('module-name') && $me.attr('module-name').length > 3 && $me.text()){
+			// Update the name of the active function
+			if ($me.attr('module-name') && $me.attr('module-name').length > 3 && $me.text()) {
 				$('#active-function-name')
-				.attr('function-class', function_class)
-				.attr('function-id', function_id)
-				.html($me.attr('module-name') + ' &rarr; ' + $me.text());
-				
-				$('#secondary-display-title').html( '<i class="icon-info-sign"></i> ' + $me.attr('module-name') + ' &rarr; ' + $me.text() );
-				
-				$('title').html($me.attr('module-name') + ' &rarr; ' + $me.text());
-				
+					.attr('function-class', function_class)
+					.attr('function-id', function_id)
+					.text($me.attr('module-name') + ' &rarr; ' + $me.text());  // Use .text() to escape
+
+				// Escape dynamic text by using text() for module-name and text()
+				$('#secondary-display-title')
+					.html('<i class="icon-info-sign"></i> ' + $('<div>').text($me.attr('module-name')).html() + ' &rarr; ' + $('<div>').text($me.text()).html());
+
+				$('title').text($me.attr('module-name') + ' &rarr; ' + $me.text());  // Use .text()
+
 				$(".active-clicked-menu")
-				.removeClass("active-clicked-menu");
-				
-				$me
-				.addClass("active-clicked-menu");
+					.removeClass("active-clicked-menu");
+
+				$me.addClass("active-clicked-menu");
 			}
+
 		}
 	},
 	
@@ -1930,12 +1932,14 @@
 			e.preventDefault();
 			
 			$('#custom-view-select-text')
-			.text( $(this).text() );
-			
-			if( $(this).hasClass('hide-selected') && $(this).attr('data-class') ){
-				$( $(this).attr('data-class') )
-				.addClass('hide-custom-view-select-classes');
+				.text($(this).text());
+
+			if ($(this).hasClass('hide-selected') && $(this).attr('data-class')) {
+				var targetClass = $(this).attr('data-class');
+				$(document).find(targetClass) // Use $.find() to safely select elements
+					.addClass('hide-custom-view-select-classes');
 			}
+
 			
 			if( $(this).hasClass('show-selected') && $(this).attr('data-class') ){
 				$('.hide-custom-view-select-classes')
