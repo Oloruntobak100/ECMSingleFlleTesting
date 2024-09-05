@@ -210,20 +210,21 @@
 			
 			$( '#'+id+'-'+attr_name ).attr('real-value', $(this).val() );
 			
-			var text = $element.text();
-			var html = $element.html().replace( text , '' );
-			
-			$element.html( $(this).val()+''+html );
-			
-			if( $(".details-section-container-row-"+attr_name) ){
-				$(".details-edit").removeClass("details-edit");
-				
-				$('table.main-details-table-'+id)
-				.find(".details-section-container-row-"+attr_name)
-				.addClass("details-edit")
-				.find(".details-section-container-value")
-				.text( $(this).val() );
-			}
+				var text = $element.text();
+				var html = $element.html().replace(text, '');
+
+				// Escape the user input by using $('<div>').text() to sanitize the input
+				$element.html( $('<div>').text($(this).val()).html() + '' + html );
+
+				if( $(".details-section-container-row-" + attr_name) ) {
+					$(".details-edit").removeClass("details-edit");
+
+					$('table.main-details-table-' + id)
+					.find(".details-section-container-row-" + attr_name)
+					.addClass("details-edit")
+					.find(".details-section-container-value")
+					.text( $(this).val() );
+				}
 
 			$('form.quick-edit-form').data('pending', 1 );
 		})
