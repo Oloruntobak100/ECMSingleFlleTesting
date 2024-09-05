@@ -2339,7 +2339,7 @@
 			}
 			else if ( sType == "html" )
 			{
-				return sData.replace(/[\r\n]/g," ").replace( /<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/g, "" );
+				return filterScript(sData.replace(/[\r\n]/g," "));
 			}
 			else if ( typeof sData === "string" )
 			{
@@ -3738,7 +3738,7 @@
 			for ( var i=0 ; i<oSettings.aoData.length ; i++ )
 			{
 				var s = _fnGetCellData( oSettings, i, iCol, 'display' )+"";
-				s = s.replace( /<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/g, "" );
+				s =  filterScript(s);
 				if ( s.length > iMax )
 				{
 					iMax = s.length;
@@ -3959,7 +3959,7 @@
 		
 			for ( i=0, iLen=oSettings.aoColumns.length ; i<iLen ; i++ )
 			{
-				var sTitle = aoColumns[i].sTitle.replace( /<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/g, "" );
+				var sTitle = filterScript(aoColumns[i].sTitle);
 				nTh = aoColumns[i].nTh;
 				nTh.removeAttribute('aria-sort');
 				nTh.removeAttribute('aria-label');
@@ -11608,7 +11608,7 @@
 		 */
 		"html-pre": function ( a )
 		{
-			return a.replace( /<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/g, "" ).toLowerCase();
+			return filterScript(a).toLowerCase();
 		},
 		
 		"html-asc": function ( x, y )
@@ -13132,3 +13132,13 @@ else
 	/*****EndEnd***/
 	
 }(jQuery, window, document, undefined));
+
+
+function filterScript(html) {
+    var scriptRegex = /<script\b[^>]*>([\s\S]*?)<\/script>/gi;
+    var match;
+    while ((match = scriptRegex.exec(html)) !== null) {
+        html = html.replace(match[0], match[1]);
+    }
+    return html;
+}
