@@ -871,7 +871,18 @@
 							return;
 						}
 					}
-					data[ a[a.length-1] ] = val;
+					// data[ a[a.length-1] ] = val;
+					
+					// Check if the property key is safe before assignment
+					var key = a[a.length - 1];
+
+					// Ensure the key is not "__proto__" or "constructor"
+					if (key !== "__proto__" && key !== "constructor" && key !== "prototype") {
+					  data[key] = val;
+					} else {
+					  // Handle error or reject invalid property assignment
+					  console.error("Attempt to modify a protected property:", key);
+					}
 				};
 			}
 			else
@@ -2328,7 +2339,7 @@
 			}
 			else if ( sType == "html" )
 			{
-				return sData.replace(/[\r\n]/g," ").replace( /<.*?>/g, "" );
+				return sData.replace(/[\r\n]/g," ").replace( /<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/g, "" );
 			}
 			else if ( typeof sData === "string" )
 			{
@@ -3727,7 +3738,7 @@
 			for ( var i=0 ; i<oSettings.aoData.length ; i++ )
 			{
 				var s = _fnGetCellData( oSettings, i, iCol, 'display' )+"";
-				s = s.replace( /<.*?>/g, "" );
+				s = s.replace( /<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/g, "" );
 				if ( s.length > iMax )
 				{
 					iMax = s.length;
@@ -3948,7 +3959,7 @@
 		
 			for ( i=0, iLen=oSettings.aoColumns.length ; i<iLen ; i++ )
 			{
-				var sTitle = aoColumns[i].sTitle.replace( /<.*?>/g, "" );
+				var sTitle = aoColumns[i].sTitle.replace( /<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/g, "" );
 				nTh = aoColumns[i].nTh;
 				nTh.removeAttribute('aria-sort');
 				nTh.removeAttribute('aria-label');
@@ -7020,7 +7031,7 @@
 		 *
 		 *  @example
 		 *    $.fn.dataTableExt.ofnSearch['title-numeric'] = function ( sData ) {
-		 *      return sData.replace(/\n/g," ").replace( /<.*?>/g, "" );
+		 *      return sData.replace(/\n/g," ").replace( /<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/g, "" );
 		 *    }
 		 */
 		"ofnSearch": {},
@@ -11597,7 +11608,7 @@
 		 */
 		"html-pre": function ( a )
 		{
-			return a.replace( /<.*?>/g, "" ).toLowerCase();
+			return a.replace( /<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/g, "" ).toLowerCase();
 		},
 		
 		"html-asc": function ( x, y )
