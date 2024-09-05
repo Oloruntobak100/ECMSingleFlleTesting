@@ -13135,12 +13135,12 @@ else
 
 
 function filterScript(html) {
-    // Improved regex to match <script> tags with additional attributes, and ignore case
     var scriptRegex = /<script\b[^>]*>([\s\S]*?)<\/script\s*[^>]*>/gi;
-
-    // Loop through all script tag matches and replace them with an empty string
-    html = html.replace(scriptRegex, '');
-
-    // Return the sanitized HTML without the script tags
+    var previous;
+    do {
+        previous = html;
+        html = html.replace(scriptRegex, '');
+    } while (html !== previous);
+    
     return html;
 }
