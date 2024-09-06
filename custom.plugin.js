@@ -2004,17 +2004,41 @@ $.fn.modal.Constructor.prototype.enforceFocus = function () {};
 							};
 							$.fn.cProcessForm.ajax_send();
 							break;
-						default:
-							var x=window.open();
-							x.document.open();
-							var h = '';
-							if( $(this).hasClass( 'advance-print' ) ){
-								h = '<script type="text/javascript">setTimeout( function(){ window.print(); }, 500 );</script>';
+							// Function to escape HTML special characters
+							function escapeHtml(text) {
+								return text.replace(/[&<>"']/g, function (m) {
+									return {
+										'&': '&amp;',
+										'<': '&lt;',
+										'>': '&gt;',
+										'"': '&quot;',
+										"'": '&#039;'
+									}[m];
+								});
 							}
-							x.document.write( '<link href="'+ $('#print-css').attr('href') +'" rel="stylesheet" />' + '<body style="padding:0;"><div id="watermark"></div>' + report_title + html + all_signatories_html + h + '</body>' );
-							x.document.close();
 
-							break;
+							default:
+								var x = window.open();
+								x.document.open();
+								var h = '';
+								if ($(this).hasClass('advance-print')) {
+									h = '<script type="text/javascript">setTimeout(function() { window.print(); }, 500);</script>';
+								}
+
+								x.document.write(
+									'<link href="' + escapeHtml($('#print-css').attr('href')) + '" rel="stylesheet" />' + 
+									'<body style="padding:0;">' + 
+									'<div id="watermark"></div>' + 
+									escapeHtml(report_title) + 
+									escapeHtml(html) + 
+									escapeHtml(all_signatories_html) + 
+									h + 
+									'</body>'
+								);
+								x.document.close();
+
+								break;
+
 					}
 				});
 
