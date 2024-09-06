@@ -21,7 +21,12 @@ $.fn.modal.Constructor.prototype.enforceFocus = function () {};
 					e.preventDefault();
 
 					if( $(this).hasClass("ajax-request-modals") ){
-						$(this).attr("href", $(this).attr("data-href") );
+						var safeHref = sanitizeUrl($(this).attr("data-href"));
+						if (safeHref) {
+							$(this).attr("href", safeHref);
+						} else {
+							console.error("Invalid URL detected in data-href.");
+						}
 					}
 
 					var data_id = ( $(this).attr("data-id") )?$(this).attr("data-id"):"";
@@ -1537,7 +1542,7 @@ $.fn.modal.Constructor.prototype.enforceFocus = function () {};
                          */
 
 						$notification_container
-							.html( html );
+							.text( html );
 
 						switch(data.typ){
 							case "report_generated":
