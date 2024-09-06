@@ -183,12 +183,21 @@ var App = function () {
         var panel = $('.color-panel');
 	
         // handle theme colors
-        var setColor = function (color) {
-            $('#style_color').attr("href", "assets/css/themes/" + color + (isRTL ? '-rtl' : '') + ".css");
-            $('#logoimg').attr("src", "assets/img/logo_" + color + ".png");
-            $('#rev-hint1').attr("src", "assets/img/sliders/revolution/hint1-" + color + ".png");
-            $('#rev-hint2').attr("src", "assets/img/sliders/revolution/hint2-" + color + ".png");
-        }
+			var setColor = function (color) {
+				// Sanitize color by allowing only letters and numbers (you can add more colors if necessary)
+				var validColors = ['red', 'blue', 'green', 'yellow'];  // Define allowed colors
+				if (!validColors.includes(color)) {
+					console.warn("Invalid color value, defaulting to 'blue'");
+					color = 'blue'; // Fallback to a default color if invalid
+				}
+
+    // Set the style and image URLs with sanitized color
+    $('#style_color').attr("href", "assets/css/themes/" + color + (isRTL ? '-rtl' : '') + ".css");
+    $('#logoimg').attr("src", "assets/img/logo_" + color + ".png");
+    $('#rev-hint1').attr("src", "assets/img/sliders/revolution/hint1-" + color + ".png");
+    $('#rev-hint2').attr("src", "assets/img/sliders/revolution/hint2-" + color + ".png");
+}
+
 
         $('.icon-color', panel).click(function () {
             $('.color-mode').show();
