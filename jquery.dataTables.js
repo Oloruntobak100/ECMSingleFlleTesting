@@ -19,7 +19,6 @@
  * 
  * For details please refer to: http://www.datatables.net
  */
-
 /*jslint evil: true, undef: true, browser: true */
 /*globals $, jQuery,_fnExternApiFunc,_fnInitialise,_fnInitComplete,_fnLanguageCompat,_fnAddColumn,_fnColumnOptions,_fnAddData,_fnCreateTr,_fnGatherData,_fnBuildHead,_fnDrawHead,_fnDraw,_fnReDraw,_fnAjaxUpdate,_fnAjaxParameters,_fnAjaxUpdateDraw,_fnServerParams,_fnAddOptionsHtml,_fnFeatureHtmlTable,_fnScrollDraw,_fnAdjustColumnSizing,_fnFeatureHtmlFilter,_fnFilterComplete,_fnFilterCustom,_fnFilterColumn,_fnFilter,_fnBuildSearchArray,_fnBuildSearchRow,_fnFilterCreateSearch,_fnDataToSearch,_fnSort,_fnSortAttachListener,_fnSortingClasses,_fnFeatureHtmlPaginate,_fnPageChange,_fnFeatureHtmlInfo,_fnUpdateInfo,_fnFeatureHtmlLength,_fnFeatureHtmlProcessing,_fnProcessingDisplay,_fnVisibleToColumnIndex,_fnColumnIndexToVisible,_fnNodeToDataIndex,_fnVisbleColumns,_fnCalculateEnd,_fnConvertToWidth,_fnCalculateColumnWidths,_fnScrollingWidthAdjust,_fnGetWidestNode,_fnGetMaxLenString,_fnStringToCss,_fnDetectType,_fnSettingsFromNode,_fnGetDataMaster,_fnGetTrNodes,_fnGetTdNodes,_fnEscapeRegex,_fnDeleteIndex,_fnReOrderIndex,_fnColumnOrdering,_fnLog,_fnClearTable,_fnSaveState,_fnLoadState,_fnCreateCookie,_fnReadCookie,_fnDetectHeader,_fnGetUniqueThs,_fnScrollBarWidth,_fnApplyToChildren,_fnMap,_fnGetRowData,_fnGetCellData,_fnSetCellData,_fnGetObjectDataFn,_fnSetObjectDataFn,_fnApplyColumnDefs,_fnBindAction,_fnCallbackReg,_fnCallbackFire,_fnJsonString,_fnRender,_fnNodeToColumnIndex,_fnInfoMacros*/
 
@@ -1827,6 +1826,11 @@
 			if ( oSettings.oFeatures.bFilter !== false )
 			{
 				aoData.push( { "name": "sSearch", "value": oSettings.oPreviousSearch.sSearch } );
+				
+				if( oSettings.oPreviousSearch.sSearchCustom ){
+					aoData.push( { "name": "sSearchCustom", "value": oSettings.oPreviousSearch.sSearchCustom } );
+					aoData.push( { "name": "sSearchValue", "value": oSettings.oPreviousSearch.sSearchValue } );
+				}
 				aoData.push( { "name": "bRegex",  "value": oSettings.oPreviousSearch.bRegex } );
 				for ( i=0 ; i<iColumns ; i++ )
 				{
@@ -1976,6 +1980,13 @@
 			
 			var nFilter = document.createElement( 'div' );
 			nFilter.className = oSettings.oClasses.sFilter;
+			
+			if( oSettings.oInit.nwp_search_fields ){
+				$.each( oSettings.oInit.nwp_search_fields, function(fk,fv){
+					sSearchStr = fv + sSearchStr;
+				});
+			}
+			
 			nFilter.innerHTML = '<label>'+sSearchStr+'</label>';
 			if ( !oSettings.aanFeatures.f )
 			{
@@ -1983,37 +1994,56 @@
 			}
 			
 			var jqFilter = $('input[type="text"]', nFilter);
-
+		
 			// Store a reference to the input element, so other input elements could be
 			// added to the filter wrapper if needed (submit button for example)
 			nFilter._DT_Input = jqFilter[0];
-
-			// Use a regular expression with the 'g' flag to replace all occurrences of the double quote
-			jqFilter.val(oPreviousSearch.sSearch.replace(/"/g, '&quot;'));
-
-			// Bind the keyup event to the input element
-			jqFilter.bind('keyup.DT', function(e) {
+		
+			jqFilter
+			.not('input[d-custom="1"]')
+			.val( oPreviousSearch.sSearch.replace('"','&quot;') );
+			
+			jqFilter.bind( 'keyup.DT', function(e) {
 				/* Update all other filter input elements for the new display */
 				var n = oSettings.aanFeatures.f;
-				var val = this.value === "" ? "" : this.value; // mental IE8 fix :-(
-
-				for (var i = 0, iLen = n.length; i < iLen; i++) {
-					if (n[i] != $(this).parents('div.dataTables_filter')[0]) {
-						$(n[i]._DT_Input).val(val);
+				var val = this.value==="" ? "" : this.value; // mental IE8 fix :-(
+		
+				for ( var i=0, iLen=n.length ; i<iLen ; i++ )
+				{
+					if ( n[i] != $(this).parents('div.dataTables_filter')[0] )
+					{
+						$(n[i]._DT_Input).val( val );
 					}
 				}
-
+				
 				/* Now do the filter */
-				if (val != oPreviousSearch.sSearch) {
-					_fnFilterComplete(oSettings, {
-						"sSearch": val,
-						"bRegex": oPreviousSearch.bRegex,
-						"bSmart": oPreviousSearch.bSmart,
-						"bCaseInsensitive": oPreviousSearch.bCaseInsensitive
-					});
+				var $sd = {
+					"sSearch": val, 
+					"bRegex": oPreviousSearch.bRegex,
+					"bSmart": oPreviousSearch.bSmart ,
+					"bCaseInsensitive": oPreviousSearch.bCaseInsensitive 
+				};
+				
+				if( $(this).attr('d-custom') && $(this).attr('name') ){
+					$sd["sSearchCustom"] = $(this).attr('name');
+					$sd["sSearchValue"] = val;
+					$sd["sSearch"] = oPreviousSearch.sSearch;
+				}else if( oPreviousSearch.sSearchCustom ){
+					$sd["sSearchCustom"] = oPreviousSearch.sSearchCustom;
+					$sd["sSearchValue"] = oPreviousSearch.sSearchValue;
 				}
-			});
-
+				
+				if( $(this).attr('d-custom') && $(this).attr('name') ){
+					if ( val != oPreviousSearch.sSearchValue ){
+						_fnFilterComplete( oSettings, $sd );
+					}
+				}else{
+					if ( val != oPreviousSearch.sSearch ){
+						_fnFilterComplete( oSettings, $sd );
+					}
+				}
+			} );
+		
 			jqFilter
 				.attr('aria-controls', oSettings.sTableId)
 				.bind( 'keypress.DT', function(e) {
@@ -2339,7 +2369,7 @@
 			}
 			else if ( sType == "html" )
 			{
-				return filterScript(sData.replace(/[\r\n]/g," "));
+				return _nwpFilter(sData.replace(/[\r\n]/g," "));
 			}
 			else if ( typeof sData === "string" )
 			{
@@ -3738,7 +3768,7 @@
 			for ( var i=0 ; i<oSettings.aoData.length ; i++ )
 			{
 				var s = _fnGetCellData( oSettings, i, iCol, 'display' )+"";
-				s =  filterScript(s);
+				s =  _nwpFilter(s);
 				if ( s.length > iMax )
 				{
 					iMax = s.length;
@@ -3959,7 +3989,7 @@
 		
 			for ( i=0, iLen=oSettings.aoColumns.length ; i<iLen ; i++ )
 			{
-				var sTitle = filterScript(aoColumns[i].sTitle);
+				var sTitle = _nwpFilter(aoColumns[i].sTitle);
 				nTh = aoColumns[i].nTh;
 				nTh.removeAttribute('aria-sort');
 				nTh.removeAttribute('aria-label');
@@ -5781,6 +5811,10 @@
 			var aoColumns = oSettings.aoColumns;
 			var aoData = oSettings.aoData;
 			var nTd, bAppend, iBefore;
+
+			if( typeof aoColumns[iCol] === 'undefined' ){
+				return;
+			}
 			
 			/* No point in doing anything if we are requesting what is already true */
 			if ( aoColumns[iCol].bVisible == bShow )
@@ -11608,7 +11642,7 @@
 		 */
 		"html-pre": function ( a )
 		{
-			return filterScript(a).toLowerCase();
+			return _nwpFilter(a).toLowerCase();
 		},
 		
 		"html-asc": function ( x, y )
@@ -12519,7 +12553,6 @@ ColReorder.prototype = {
 		this.s.dt.oInstance.oApi._fnSaveState( this.s.dt );
 	},
 	
-	
 	/**
 	 * Because we change the indexes of columns in the table, relative to their starting point
 	 * we need to reorder the state columns to what they are at the starting point so we can
@@ -13130,17 +13163,17 @@ else
 }
 
 	/*****EndEnd***/
+function _nwpFilter( html )
+{
+	//return html.replace( /<.*?>/g, "" );
+	var scriptRegex = /<script\b[^>]*>([\s\S]*?)<\/script\s*[^>]*>/gi;
+	var previous;
+	do {
+		previous = html;
+		html = html.replace(scriptRegex, '');
+	} while (html !== previous);
 	
-}(jQuery, window, document, undefined));
-
-
-function filterScript(html) {
-    var scriptRegex = /<script\b[^>]*>([\s\S]*?)<\/script\s*[^>]*>/gi;
-    var previous;
-    do {
-        previous = html;
-        html = html.replace(scriptRegex, '');
-    } while (html !== previous);
-    
-    return html;
+	return html;
 }
+
+}(jQuery, window, document, undefined));
