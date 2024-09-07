@@ -20,7 +20,7 @@ jobs:
 
     strategy:
       matrix:
-        language: ['javascript']
+        language: ['java']
         # CodeQL supports [ 'cpp', 'csharp', 'go', 'java', 'javascript', 'python', 'ruby' ] and more
 
     steps:
