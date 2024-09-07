@@ -2001,7 +2001,8 @@
 		
 			jqFilter
 			.not('input[d-custom="1"]')
-			.val( oPreviousSearch.sSearch.replace('"','&quot;') );
+			.val( oPreviousSearch.sSearch.replace(/"/g, '&quot;'); );
+			//.val( oPreviousSearch.sSearch.replace('"','&quot;') );
 			
 			jqFilter.bind( 'keyup.DT', function(e) {
 				/* Update all other filter input elements for the new display */
