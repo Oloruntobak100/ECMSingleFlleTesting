@@ -147,20 +147,32 @@
 				});
 			}
 		}else{
-		
-			var $selected_record = $('#'+ $nwProcessor.single_selected_record).parents('tr');
-			
-			if($selected_record){
+  
+			if( $nwProcessor.single_selected_record && $('#'+ $nwProcessor.single_selected_record) ){
+   
+						
+	
+												 
+	
+							   
+									   
+										   
+	
+							 
+				var $selected_record = $('#'+ $nwProcessor.single_selected_record).parents('tr');
 				
-				$selected_record.removeClass('row_selected');
-				
-				//Select Record Click Event
-				$clicked_element_parent = $context;
-				$clicked_element_group_selector = 'tr';
-				
-				var shiftctrlKey = false;
-				$nwProcessor.select_record_click_event($clicked_element_parent, $selected_record , $clicked_element_group_selector, shiftctrlKey);
-				
+				if($selected_record){
+					
+					$selected_record.removeClass('row_selected');
+					
+					//Select Record Click Event
+					$clicked_element_parent = $context;
+					$clicked_element_group_selector = 'tr';
+					
+					var shiftctrlKey = false;
+					$nwProcessor.select_record_click_event($clicked_element_parent, $selected_record , $clicked_element_group_selector, shiftctrlKey);
+					
+				}
 			}
 		}
 	},
@@ -189,45 +201,45 @@
 		//Bind Form Change Event
 		$('form.quick-edit-form')
 		.find('.form-gen-element')
-		.bind('change', function( e ){
-			var id = $('form.quick-edit-form').find('input#id').val();
-			
-			var form_name = $('form.quick-edit-form').attr("name");
-			var attr_name = $(this).attr('name');
-			
-			var $element = $( '#'+id+'-'+attr_name ).parent('td');
-			
-			if( ! $element.is(":visible") ){
-				switch( form_name ){
-				case "cash_calls":
-					if( attr_name == "cash_calls003" )attr_name = "description";
-					if( attr_name == "cash_calls002" )attr_name = "code";
-				break;
-				}
-				
-				var $element = $( '#'+id+'-'+attr_name ).parent('td');
-			}
-			
-			$( '#'+id+'-'+attr_name ).attr('real-value', $(this).val() );
-			
-				var text = $element.text();
-				var html = $element.html().replace(text, '');
+								
+															 
+   
+														  
+										
+   
+														 
+   
+								   
+						
+					  
+																								 
+														  
+		  
+	 
+	
+														  
+	
+   
+																
+   
+							   
+												 
 
-				// Escape the user input by using $('<div>').text() to sanitize the input
-				$element.html( $('<div>').text($(this).val()).html() + '' + html );
+																												   
+																										  
 
-				if( $(".details-section-container-row-" + attr_name) ) {
-					$(".details-edit").removeClass("details-edit");
+															
+													
 
-					$('table.main-details-table-' + id)
-					.find(".details-section-container-row-" + attr_name)
-					.addClass("details-edit")
-					.find(".details-section-container-value")
-					.text( $(this).val() );
-				}
+										
+														 
+							  
+											  
+							
+	 
 
-			$('form.quick-edit-form').data('pending', 1 );
-		})
+												 
+	
 		.bind('keyup', function(e){ 
 			
 			switch(e.keyCode){
@@ -259,12 +271,27 @@
 		}
 		
 		$context.find('tr').off('click');
-		$context.find('tr td').off('dblclick');
+		$context.find('tr .datatables-child-click').off('click');
+		//$context.find('tr td').off('dblclick');
 		
 		//Bind Row Click Event
 		$context
+		.find('tr .datatables-child-click')
+		.on('click',function(e){
+			$.fn.cProcessForm.buttonClickRequest( $(this), e );
+			e.stopPropagation();
+		});
+		
+		$context
+		.find('tr .datatables-stop-propagation')
+		.on('click',function(e){
+			e.stopPropagation();
+		});
+		
+		$context
 		.find('tr')
 		.on('click',function(e){
+			
 			//Select Record Click Event
 			$clicked_element_parent = $(this).parents('table');
 			$clicked_element_group_selector = 'tr';
@@ -392,7 +419,8 @@
 			var len = 0;
 			if( $jx2 && ! $.isEmptyObject( $jx2 ) ){
 				$jt = JSON.stringify( $jx2 );
-				len = $jt.split(',').length;
+				//len = $jt.split(',').length;
+				len = Object.keys( $jx2 ).length;
 			}
 			$( $nwProcessor.selection ).find("#selected-count").text( len + ' records selected' );
 			$( $nwProcessor.selection ).find("textarea[name='data']").val( $jt );
@@ -402,6 +430,10 @@
 		
 		//Store ID of Selected Row
 		var selected_record = $clicked_element.find('.datatables-record-id').attr('id');
+		var selected_record_data = {};
+		if( $clicked_element.find('textarea.datatables-record-data').val() ){
+			selected_record_data = JSON.parse( $clicked_element.find('textarea.datatables-record-data').val() );
+		}
 		
 		if( $nwProcessor.selection ){
 			shiftctrlKey = 1;
@@ -420,8 +452,14 @@
 				//Mark DataTable Row as Selected
 				$clicked_element.removeClass('row_selected');
 				
-				$nwProcessor.multiple_selected_record_id = $nwProcessor.multiple_selected_record_id.replace( $nwProcessor.single_selected_record+':::' , '' );
+				$nwProcessor.multiple_selected_record_id = $nwProcessor.multiple_selected_record_id.replace( $nwProcessor.single_selected_record + ':::' , '' );
+				$nwProcessor.multiple_selected_record_id = $nwProcessor.multiple_selected_record_id.replace( ':::' + $nwProcessor.single_selected_record , '' );
+				
 				$nwProcessor.single_selected_record = '';
+				var sp = $nwProcessor.multiple_selected_record_id.split(":::");
+				if( sp[0] ){
+					$nwProcessor.single_selected_record = sp[0];
+				}
 			}
 			
 			
@@ -444,19 +482,33 @@
 			}
 			
 			if( $nwProcessor.selection && $nwProcessor.single_selected_record ){
-				$jx2[ $nwProcessor.single_selected_record ] = 1;
+				if( selected_record_data ){
+					$jx2[ $nwProcessor.single_selected_record ] = selected_record_data;
+				}else{
+					$jx2[ $nwProcessor.single_selected_record ] = 1;
+				}
 			}
 			//Mark DataTable Row as Selected
 			$clicked_element.addClass('row_selected');
 			
 			if( $nwProcessor.single_selected_record && $nwProcessor.record_click_by_user ){
-				if( $("#record-details-home-control-handle").is(":visible") && ! $("#record-details-home-control-handle").parent().hasClass("active") ){
-					$("#record-details-home-control-handle").click();
+				if( $("#record-details-home-control-handle").hasClass("v3") ){
+					if( ! $("#record-details-home-control-handle").hasClass("active") ){
+						var firstTabEl = document.querySelector('#record-details-home-control-handle');
+						var firstTab = new bootstrap.Tab(firstTabEl);
+
+						firstTab.show();
+					}
+				}else{
+					if( $("#record-details-home-control-handle").is(":visible") && ! $("#record-details-home-control-handle").parent().hasClass("active") ){
+						$("#record-details-home-control-handle").click();
+					}
 				}
 				
 				if( $(".datatable-split-screen").is(":visible") && $(".datatable-split-screen").attr("action") ){
+					
 					$.fn.cProcessForm.ajax_data = {
-						ajax_data: {id: $nwProcessor.single_selected_record },
+						ajax_data: {id: $nwProcessor.single_selected_record, sel_d:JSON.stringify( selected_record_data ) },
 						form_method: 'post',
 						ajax_data_type: 'json',
 						ajax_action: 'request_function_output',
@@ -753,6 +805,17 @@
 						ajax_data = {mod:$(this).attr('mod'), id:record};
 					}
 					
+					var nt = '';
+					if( $(this).attr('new_tab') ){
+						nt = $(this).attr('new_tab');
+					}
+					var nt1 = '';
+					if( $(this).attr('new_title') ){
+						nt1 = $(this).attr('new_title');
+					}else if( $(this).attr('title') ){
+						nt1 = $(this).attr('title');
+					}
+					
 					$.fn.cProcessForm.ajax_data = {
 						ajax_data: ajax_data,
 						form_method: 'post',
@@ -760,6 +823,9 @@
 						ajax_action: 'request_function_output',
 						ajax_container: '',
 						ajax_get_url: $(this).attr('action'),
+						ajax_target: $(this).attr('target'),
+						ajax_new_tab: nt,
+						ajax_title: nt1,
 					};
 					$.fn.cProcessForm.ajax_send();
 					
@@ -785,28 +851,41 @@
 			e.preventDefault();
 			
 			if( $nwProcessor.single_selected_record || $nwProcessor.multiple_selected_record_id){
-				$nwProcessor.clicked_action_button = $(this);
-				
-				var budget_id = '';
-				var month_id = '';
-				
-				if( $(this).attr('budget-id') && $(this).attr('month-id') ){
-					budget_id = $(this).attr('budget-id');
-					month_id = $(this).attr('month-id');
+												 
+	
+				var ok = 1;
+					  
+	
+				if( $(this).attr('confirm-prompt') ){
+					ok = confirm( 'Are you sure that you want to ' + $(this).attr('confirm-prompt') );
+										 
 				}
 				
-				ajax_data = {mod:$(this).attr('mod'), id: $nwProcessor.single_selected_record, ids:$nwProcessor.multiple_selected_record_id, budget:budget_id, month:month_id };
-				
-				$.fn.cProcessForm.ajax_data = {
-					ajax_data: ajax_data,
-					form_method: 'post',
-					ajax_data_type: 'json',
-					ajax_action: 'request_function_output',
-					ajax_container: '',
-					ajax_get_url: $(this).attr('action'),
-				};
-				$.fn.cProcessForm.ajax_send();
-				
+																																																																
+	
+				if( ok ){
+					$nwProcessor.clicked_action_button = $(this);
+					
+					var budget_id = '';
+					var month_id = '';
+					
+					if( $(this).attr('budget-id') && $(this).attr('month-id') ){
+						budget_id = $(this).attr('budget-id');
+						month_id = $(this).attr('month-id');
+					}
+					
+					ajax_data = {mod:$(this).attr('mod'), id: $nwProcessor.single_selected_record, ids:$nwProcessor.multiple_selected_record_id, budget:budget_id, month:month_id };
+					
+					$.fn.cProcessForm.ajax_data = {
+						ajax_data: ajax_data,
+						form_method: 'post',
+						ajax_data_type: 'json',
+						ajax_action: 'request_function_output',
+						ajax_container: '',
+						ajax_get_url: $(this).attr('action'),
+					};
+					$.fn.cProcessForm.ajax_send();
+				}
 			}else{
 				$nwProcessor.no_record_selected_prompt();
 			}
@@ -859,7 +938,9 @@
 				
 				$nwProcessor.confirm_action_prompt = 1;
 				
-				$(this).popover('show');
+				if( $(this).hasClass('pop-up-button') ){
+					$(this).popover('show');
+				}
 			}else{
 				$nwProcessor.no_record_selected_prompt();
 			}
@@ -951,24 +1032,24 @@
 			//Request Function Output
 			$nwProcessor.request_function_output(function_name, function_class, module_id, function_id , budget_id, month_id, operator_id, department_id, url, start_date, end_date, year, month, reason );
 			
-			// Update the name of the active function
-			if ($me.attr('module-name') && $me.attr('module-name').length > 3 && $me.text()) {
-				$('#active-function-name')
-					.attr('function-class', function_class)
-					.attr('function-id', function_id)
-					.text($me.attr('module-name') + ' &rarr; ' + $me.text());  // Use .text() to escape
+											
+																					 
+							  
+											
+									  
+																						
 
-				// Escape dynamic text by using text() for module-name and text()
-				$('#secondary-display-title')
-					.html('<i class="icon-info-sign"></i> ' + $('<div>').text($me.attr('module-name')).html() + ' &rarr; ' + $('<div>').text($me.text()).html());
+																									   
+								 
+																																																  
 
-				$('title').text($me.attr('module-name') + ' &rarr; ' + $me.text());  // Use .text()
+																					   
 
-				$(".active-clicked-menu")
-					.removeClass("active-clicked-menu");
+							 
+										 
 
-				$me.addClass("active-clicked-menu");
-			}
+										
+	
 
 		}
 	},
@@ -986,9 +1067,9 @@
 		break;
 		default:
 			if(function_id){
-				ajax_data = {action:function_class, todo:function_name, module:module_id, id:function_id };
+				ajax_data = {action:function_class, todo:function_name, module:module_id, id:function_id, budget:budget_id, month:month_id, department:department_id, operator:operator_id, end_date:end_date, start_date:start_date, year:year, month_of_year:month, reason:reason };
 			}else{
-				ajax_data = {action:function_class, todo:function_name, module:module_id };
+				ajax_data = {action:function_class, todo:function_name, module:module_id, budget:budget_id, month:month_id, department:department_id, operator:operator_id, end_date:end_date, start_date:start_date, year:year, month_of_year:month, reason:reason };
 			}
 			
 			if( function_name == 'create_new_record' && $nwProcessor.single_selected_record ){
@@ -1015,25 +1096,32 @@
 		ajax_action = 'request_function_output';
 		ajax_container = '';
 		ajax_get_url = '';
-
-		if( ! $.isEmptyObject( ajax_data ) && ajax_data["action"] && ajax_data["action"] != 'column_toggle' ){
-			ajax_data["nwp2_source"] = ajax_data["action"];
-			ajax_data["action"] = "datatable_button";
-			ajax_data["nwp2_action"] = ajax_data["action"];
-			ajax_data["nwp2_todo"] = ajax_data["todo"];
-		}
+		
+																										
+												  
+											
+												  
+											  
+   
 		if( url ){
 			ajax_get_url = url;
 			ajax_data = {};
-			form_method = 'post';
-		}else{
-			form_method = 'post';
+						
+		
+						
 
-			ajax_get_url = '?' + Object.keys(ajax_data).map(function(key) {
-				return key + '=' + ajax_data[key];
-			}).join('&');
+																  
+									  
+				
 
-			ajax_data = {};
+				  
+		}
+		if( $nwProcessor.single_selected_record ){
+			if( url ){
+				ajax_get_url += '&sel_id='+$nwProcessor.single_selected_record;
+			}else{
+				ajax_data.sel_id = $nwProcessor.single_selected_record;
+			}
 		}
 		
 		$.fn.cProcessForm.ajax_data = {
@@ -1128,8 +1216,17 @@
 					$nwProcessor.activate_country_select_field();
 				
 				//Display Form Tab
-				$('#form-home-control-handle')
-				.click();
+				if( $("#form-home-control-handle").hasClass("v3") ){
+					if( ! $("#form-home-control-handle").hasClass("active") ){
+						var firstTabEl = document.querySelector('#form-home-control-handle');
+						var firstTab = new bootstrap.Tab(firstTabEl);
+
+						firstTab.show();
+					}
+				}else{
+					$('#form-home-control-handle')
+					.click();
+				}
 			break;
 			case "display-advance-search-form":
 				//Update Create New School Button Attributes
@@ -1147,8 +1244,17 @@
                     .hide();
 				}
 				//Display Form Tab
-				$('#form-home-control-handle')
-				.click();
+				if( $("#form-home-control-handle").hasClass("v3") ){
+					if( ! $("#form-home-control-handle").hasClass("active") ){
+						var firstTabEl = document.querySelector('#form-home-control-handle');
+						var firstTab = new bootstrap.Tab(firstTabEl);
+
+						firstTab.show();
+					}
+				}else{
+					$('#form-home-control-handle')
+					.click();
+				}
 				
 				//bind advance search controls
 				$nwProcessor.bind_search_field_select_control();
@@ -1298,12 +1404,12 @@
 					.html( data.search_query )
 					.attr( 'title', $('#search-query-display-container').text() );
 				
-
+				
 				//Activate DataTables Plugin
 				$nwProcessor.recreateDataTables();
 				
 				$nwProcessor.set_function_click_event();
-
+				
 				//UPDATE HIDDEN / SHOWN COLUMNS
 				$nwProcessor.update_column_view_state();
 				
@@ -1400,7 +1506,7 @@
 	
 	reload_datatable: function(){
 		var data_table_id = $nwProcessor.getDataTableID( 1 );
-		//alert( data_table_id );
+						   
 		if( data_table_id && data_table_id != 'undefined-datatable' ){
 			var oTable1 = $('#'+data_table_id).dataTable();
 			data_table_id = data_table_id.replace( "-datatable", "" );
@@ -1458,7 +1564,7 @@
 		/********LISTENER FOR OPENING & CLOSING DETAILS********/
 		/******************************************************/
 		
-		$('.datatables-details').off('click');
+		$('.nwp-datatables-direct-click').off('click');
 		
 		$('.datatables-details').on('click', function () {
 			
@@ -1522,7 +1628,9 @@
 		//bind delete popover buttons
 		$("body")
 		.on( "click", 'input#delete-button-yes', function(e){	
-			$('a#delete-selected-record').popover('hide');
+			if( $('a#delete-selected-record').hasClass('pop-up-button') ){
+				$('a#delete-selected-record').popover('hide');
+			}
 			
 			if( $nwProcessor.confirm_action_prompt ){
 				$.fn.cProcessForm.ajax_send();
@@ -1534,7 +1642,9 @@
 		
 		$("body")
 		.on( "click", 'input#restore-button-yes', function(e){
-			$('a#restore-selected-record').popover('hide');
+			if( $('a#restore-selected-record').hasClass('pop-up-button') ){
+				$('a#restore-selected-record').popover('hide');
+			}
 			
 			if( $nwProcessor.confirm_action_prompt ){
 				$.fn.cProcessForm.ajax_send();
@@ -1546,12 +1656,16 @@
 		
 		$("body")
 		.on( "click", 'input#delete-button-no', function(e){
-			$('a#delete-selected-record').popover('hide');
+			if( $('a#delete-selected-record').hasClass('pop-up-button') ){
+				$('a#delete-selected-record').popover('hide');
+			}
 		});
 		
 		$("body")
 		.on( "click", 'input#restore-button-no', function(e){
-			$('a#restore-selected-record').popover('hide');
+			if( $('a#restore-selected-record').hasClass('pop-up-button') ){
+				$('a#restore-selected-record').popover('hide');
+			}
 		});
 		
 		//Bind Cancel Operation for recursive ajax requests
@@ -1582,7 +1696,7 @@
 		//get current column
 		var col = data.column_num;
 		++col;
-		//++col;
+		++col;
 		$nwProcessor.fnShowHide( col , data_table_id );
 		
 		//Toggle Check Box State
@@ -1596,30 +1710,30 @@
 		
 	//Update Hidden / Show Columns
 	update_column_view_state: function(){
+		
+					
+														  
+			   
+   
 
-		var col_incre = 0;
-		if( $("th.nwp-datatable-details-show").is(":visible") ){
-			++col_incre;
-		}
-
-		if( $("th.nwp-datatable-sn-show").is(":visible") ){
-			++col_incre;
-		}
+													 
+			   
+   
 
 		$('ul.show-hide-column-con')
 		.find('input[type="checkbox"]')
 		.not('.nw-skip')
 		.each(function(){
-			//console.log( $(this).text() );
+			
 
 			if( $(this).attr('name') ){
 				if(!$(this).is(':checked')){
 					//get current column
 					var col = $(this).parents('li').index();
-					col += col_incre;
-					//col += 2;
-					//console.log( col, col_incre );
-					//console.log( col, $(this).parents('ul').attr("data-table") );
+					col += 2;
+				
+									 
+																									  
 					$nwProcessor.fnHide(col , $(this).parents('ul').attr("data-table") );
 				}
 			}
@@ -1694,7 +1808,7 @@
 	
 	no_record_selected_prompt: function(){
 		//alert('display prompt that no record was selected');
-		var data = {theme:'alert-info', err:'No Selected Record', msg:'Please select a record by clicking on it', typ:'jsuerror' };
+		var data = {theme:'alert-info note note-info', err:'No Selected Record', msg:'Please select a record by clicking on it', typ:'jsuerror' };
 		$.fn.cProcessForm.display_notification( data );
 	},
 	
@@ -1706,8 +1820,8 @@
 	getDataTableID: function( type ){
 		switch( type ){
 		case 1:
-			if( tmp_data && tmp_data.data_table_name ){
-				return tmp_data.data_table_name + '-datatable';
+			if( $nwProcessor.tmp_data && $nwProcessor.tmp_data.data_table_name ){
+				return $nwProcessor.tmp_data.data_table_name + '-datatable';
 			}
 		break;
 		}
@@ -1719,13 +1833,16 @@
 	recreateDataTables: function(){
 		//INITIALIZE DATA TABLES
 		var data_table_id = $nwProcessor.getDataTableID( 1 );
-		//console.log( data_table_id,  $('#'+data_table_id) );
+														
 		var tb = $('#'+data_table_id).attr("class-name");
 		var h = parseFloat( $( '#' + $('#'+data_table_id).attr('container') ).css('height').replace('px', '') );
 		var h1 = "350";
 		
 		if( ! isNaN( h ) ){
 			h1 = h - 150; //94 //39,25 150 //NB:account for table header height
+			if( h1 < 290 ){
+				h1 = '100%';
+			}
 		}
 		
 		var sel = 0;
@@ -1739,9 +1856,18 @@
 		}
 		
 		md["table"] = tb;
+		var sf = {};
+		if( md["quick_search"] ){
+			sf = JSON.parse( JSON.stringify( md["quick_search"] ) );
+			delete md["quick_search"];
+		}
+		//sf["emr_search"] = '<input type="text" placeholder="EMR No" d-custom="1" name="emr_search" style="width:30%;" />';
 		
 		$nwProcessor.selection = '';
+		$nwProcessor.multiple_selected_record_id = '';
 		if( $("form#datatable-select-all").is(":visible") ){
+			$nwProcessor.single_selected_record = '';
+			
 			md[ "selection" ] = 1;
 			$nwProcessor.selection = "form#datatable-select-all";
 			
@@ -1755,16 +1881,17 @@
 				}
 			});
 		}
-
-		var surl = $.fn.cProcessForm.requestURL + "Endpoint?action=display_table&current_tab=datatable";
+		
+		var surl = $.fn.cProcessForm.requestURL + "includes/datatable_server.php";
 		if( $.fn.cProcessForm.customURL ){
-			surl = $.fn.cProcessForm.requestURL + "Endpoint?action=display_table&current_tab=datatable";
+			surl = $.fn.cProcessForm.requestURL + "datatable_server.php";
 		}
 		
 		//
 		$nwProcessor.oTable = $('#'+data_table_id).dataTable({
 			"sServerMethod": "POST",
 			"more_data": md,
+			"nwp_search_fields": sf,
 			"bProcessing": true,
 			"bServerSide": true,
 			"sAjaxSource": surl,
@@ -1775,7 +1902,7 @@
 			"bDestroy": true,
 			//"sDom": "Rlfrtip",
 			"sDom": 'R<"H"lfr>t<"F"ip>',
-			"bStateSave": false,
+			"bStateSave": false,	//@dan-31-mar-22
 			"iDisplayLength": 25,
 			 "aoColumnDefs": [ 
 				 { "bSortable": false, "aTargets": [ 0 ] }
@@ -1801,11 +1928,26 @@
 				*/
 				$('#'+ $(this).attr("id") +'_filter')
 				.find('input')
+				.not('input[d-custom="1"]')
 				.attr({
 					placeholder:"Quick Search",
 					title:"Perform quick search",
 				})
 				.addClass("form-control input-sm");
+				
+				$('#'+ $(this).attr("id") +'_filter')
+				.find('input[d-custom="1"]')
+				.css('display', 'inline-block')
+				.addClass("form-control input-sm");
+				
+				$('#'+ $(this).attr("id") +'_filter').find('label').css('width', '100%');
+				$('#'+ $(this).attr("id") +'_filter').find('input').not('input[d-custom="1"]').css('display', 'inline-block').css('width', '50%');
+				
+				/* $inpt = $('#'+ $(this).attr("id") +'_filter').find('input').clone();
+				$inpt.attr('placeholder', 'EMR No.' ).css('width', '30%');
+				//$inpt.attr('action', '?action=customers&todo=get_customers_select2' );
+				//$inpt.addClass('select2');
+				$inpt.insertBefore( $('#'+ $(this).attr("id") +'_filter').find('input') ); */
 				
 				$('#'+$(this).attr("id")+'_length')
 				.find('select')
@@ -1933,12 +2075,12 @@
 			e.preventDefault();
 			
 			$('#custom-view-select-text')
-				.text($(this).text());
-
+			.text( $(this).text() );
+			
 			if ($(this).hasClass('hide-selected') && $(this).attr('data-class')) {
 				var targetClass = $(this).attr('data-class');
-				$(document).find(targetClass) // Use $.find() to safely select elements
-					.addClass('hide-custom-view-select-classes');
+				$(document).find(targetClass)
+				.addClass('hide-custom-view-select-classes');
 			}
 
 			
@@ -2112,6 +2254,22 @@
 		.find('tr')
 		.removeClass('row_selected');
 	},	
+	deselect_all_records_and_clear_form: function(){
+		$nwProcessor.deselect_all_records();
+		var $element = $( "#" + $nwProcessor.getDataTableID( 1 ) );
+		//console.log( "#" + $nwProcessor.getDataTableID( 1 ) );
+		
+		$element
+		.parents(".dynamic")
+		.find('form#datatable-select-all')
+		.trigger("reset").find(".file-content").html('');
+		
+		$element
+		.parents(".dynamic")
+		.find('form#datatable-select-all')
+		.find(".form-gen-element-image-upload-preview")
+		.attr('src','');
+	},	
 	select_all_records: function(){
 		var $element = $( "#" + $nwProcessor.getDataTableID( 1 ) );
 		$nwProcessor.multiple_selected_record_id = '';
@@ -2124,7 +2282,16 @@
 		.each(function(){
 			var id_of_record = $(this).find('.datatables-record-id').attr('id');
 			if( id_of_record ){
-				$jx2[ id_of_record ] = 1;
+				var selected_record_data = {};
+				if( $(this).find('textarea.datatables-record-data').val() ){
+					selected_record_data = JSON.parse( $(this).find('textarea.datatables-record-data').val() );
+				}
+				
+				if( selected_record_data ){
+					$jx2[ id_of_record ] = selected_record_data;
+				}else{
+					$jx2[ id_of_record ] = 1;
+				}
 				$nwProcessor.multiple_selected_record_id = $nwProcessor.multiple_selected_record_id +':::'+id_of_record;
 				
 				//Push All Details to display container
@@ -2192,11 +2359,12 @@
 				
 			});
 			
-					
+	 
 			// Using DOMPurify to sanitize the content
-				var cleanHTML = DOMPurify.sanitize(list_elements);
-				$('ul#record-details-field-selector').html(cleanHTML);
-
+			var cleanHTML = DOMPurify.sanitize(list_elements);
+			$('ul#record-details-field-selector').html(cleanHTML);										  
+			/*$('ul#record-details-field-selector')
+			.html( list_elements );*/
 			
 		}
 	},
@@ -2247,7 +2415,33 @@
 			.fnAdjustColumnSizing();
 		}
 	},
-
+	
+	resizeHeight:'',
+	resizeWidth:'',
+	resizeTimer2:'',
+	resize: function(){
+		//|| $nwProcessor.resizeHeight != $(document).height() 
+		if( $nwProcessor.resizeWidth != $(document).width() ){
+			if( $nwProcessor.resizeTimer2 )clearTimeout( $nwProcessor.resizeTimer2 );
+			$nwProcessor.resizeTimer2 = setTimeout(function() {
+			  if( $( "table.activated-table").is(":visible") ){
+					$nwProcessor.resizeWidth = $(document).width(); 
+					$nwProcessor.resizeHeight = $(document).height();
+			
+					$( "table.activated-table")
+					.dataTable()
+					.fnAdjustColumnSizing();
+					$nwProcessor.update_column_view_state();
+				}
+			}, 250);
+		}
+		if( ! $nwProcessor.resizeWidth ){
+			$nwProcessor.resizeWidth = $(document).width(); 
+			$nwProcessor.resizeHeight = $(document).height();
+		}
+		
+	},
+	
 	}
 }(jQuery));
 
@@ -2255,6 +2449,10 @@ $nwProcessor.get_properties_of_school();
 $nwProcessor.bind_show_hide_column_checkbox();
 //$nwProcessor.initiate_tiny_mce_for_popup_textarea( 'textarea#popTextArea' );
 $nwProcessor.bind_create_field_selector_control();
+
+window.addEventListener("resize", function() {
+	$nwProcessor.resize();
+});
 
 $( document ).ready(function(){
 	var isOverIFrame = false;
