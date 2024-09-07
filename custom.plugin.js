@@ -21,7 +21,12 @@ $.fn.modal.Constructor.prototype.enforceFocus = function () {};
 					e.preventDefault();
 
 					if( $(this).hasClass("ajax-request-modals") ){
-						$(this).attr("href", $(this).attr("data-href") );
+						var safeHref = sanitizeUrl($(this).attr("data-href"));
+						if (safeHref) {
+							$(this).attr("href", safeHref);
+						} else {
+							console.error("Invalid URL detected in data-href.");
+						}
 					}
 
 					var data_id = ( $(this).attr("data-id") )?$(this).attr("data-id"):"";
@@ -1537,7 +1542,7 @@ $.fn.modal.Constructor.prototype.enforceFocus = function () {};
                          */
 
 						$notification_container
-							.html( html );
+							.text( html );
 
 						switch(data.typ){
 							case "report_generated":
@@ -1999,17 +2004,28 @@ $.fn.modal.Constructor.prototype.enforceFocus = function () {};
 							};
 							$.fn.cProcessForm.ajax_send();
 							break;
-						default:
-							var x=window.open();
-							x.document.open();
-							var h = '';
-							if( $(this).hasClass( 'advance-print' ) ){
-								h = '<script type="text/javascript">setTimeout( function(){ window.print(); }, 500 );</script>';
-							}
-							x.document.write( '<link href="'+ $('#print-css').attr('href') +'" rel="stylesheet" />' + '<body style="padding:0;"><div id="watermark"></div>' + report_title + html + all_signatories_html + h + '</body>' );
-							x.document.close();
+							default:
+								var x = window.open();
+								x.document.open();
+								var h = '';
+								if ($(this).hasClass('advance-print')) {
+									h = '<script type="text/javascript">setTimeout(function() { window.print(); }, 500);</script>';
+								}
+
+								x.document.write(
+									'<link href="' + $.fn.cProcessForm.escapeHtml($('#print-css').attr('href')) + '" rel="stylesheet" />' + 
+									'<body style="padding:0;">' + 
+									'<div id="watermark"></div>' + 
+									$.fn.cProcessForm.escapeHtml(report_title) + 
+									$.fn.cProcessForm.escapeHtml(html) + 
+									$.fn.cProcessForm.escapeHtml(all_signatories_html) + 
+									h + 
+									'</body>'
+								);
+								x.document.close();
 
 							break;
+
 					}
 				});
 
@@ -2257,20 +2273,41 @@ $.fn.modal.Constructor.prototype.enforceFocus = function () {};
 						*/
 						$("input#id-"+captureType+"-sign").val( img );
 						h = '<img src="'+ img +'" style="max-width:100%;" />';
-					}else{
+					}else {
 						var data = {theme:'alert-info', err:'No Signature Captured', msg:'No signature was captured, to capture a signature click on the SAVE SIGNATURE button before you close the capture screen', typ:'jsuerror' };
-						$.fn.cProcessForm.display_notification( data );
+						$.fn.cProcessForm.display_notification(data);
 					}
 
-					$("#"+container).html( h );
+					// Sanitize the HTML content in 'h' before injecting it into the DOM
+					$("#"+container).html($.fn.cProcessForm.escapeHtml(h));
+
 				}else{
 					var data = {theme:'alert-danger', err:'No Signature Pad Form', msg:'Signature cannot be captured', typ:'jsuerror' };
-					$.fn.cProcessForm.display_notification( data );
-				}
+					$.fn.cProcessForm.display_notification(data);
+				}				
+				
 			}else{
 				var data = {theme:'alert-danger', err:'No Form Found', msg:'Signature cannot be captured', typ:'jsuerror' };
 				$.fn.cProcessForm.display_notification( data );
 			}
+		},
+		escapeHtml: function(unsafe) {
+		// Function to escape HTML special characters
+			return unsafe.replace(/[&<>"']/g, function (m) {
+				return {
+					'&': '&amp;',
+					'<': '&lt;',
+					'>': '&gt;',
+					'"': '&quot;',
+					"'": '&#039;'
+				}[m];
+			});
+			/* return unsafe
+			.replace(/&/g, "&amp;")
+			.replace(/</g, "&lt;")
+			.replace(/>/g, "&gt;")
+			.replace(/"/g, "&quot;")
+			.replace(/'/g, "&#039;"); */
 		},
 		activatedEmptyTab:0,
 		activateEmptyTab: function(){
@@ -2744,15 +2781,30 @@ var nwTreeView = function () {
 					}
 				})
 				.on("changed.jstree", function (e, data) {
-					if(data.selected.length) {
-						switch( $(this).attr("id") ){
+					// Function to sanitize URLs or any strings that go into HTML attributes
+					function sanitizeUrl(url) {
+						return url.replace(/[^\w-./#?&=]/g, ''); // Remove any characters not allowed in URLs
+					}
+
+					if (data.selected.length) {
+						switch ($(this).attr("id")) {
 							case 'reports-table-of-content-tree-view':
 								var d = data.instance.get_node(data.selected[0]).id;
+
+								// Get the value of data-src and sanitize it
+								var baseSrc = sanitizeUrl($('iframe#iframe-container-of-content').attr('data-src'));
+
+								// Sanitize the 'd' value as well
+								var sanitizedD = sanitizeUrl(d);
+
+								// Set the iframe src with the sanitized values
 								$('iframe#iframe-container-of-content')
-									.attr( 'src', $('iframe#iframe-container-of-content').attr('data-src') + '#' + d );
+									.attr('src', baseSrc + '#' + sanitizedD);
 
 								$(document).scrollTop(0);
 								break;
+						
+
 							default:
 							case 'ui-navigation-tree':
 							case 'move-ui-navigation-tree':
