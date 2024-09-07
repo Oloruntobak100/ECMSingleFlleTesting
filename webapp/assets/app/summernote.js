@@ -4710,7 +4710,8 @@
               $dropzoneMessage.text(_this.lang.image.dragImageHere);
           });
           // attach dropImage
-          this.$dropzone.on('drop', function (event) {
+		  // commented to due to codeql sec flag - 07-sep-24
+          /*this.$dropzone.on('drop', function (event) {
               var dataTransfer = event.originalEvent.dataTransfer;
               // stop the browser from opening the dropped content
               event.preventDefault();
@@ -4731,7 +4732,7 @@
                       }
                   });
               }
-          }).on('dragover', false); // prevent default dragover event
+          }).on('dragover', false); // prevent default dragover event*/
       };
       Dropzone.prototype.destroy = function () {
           var _this = this;
